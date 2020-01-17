@@ -13,6 +13,18 @@
 
 
 
+const char* ssid = "HUAWEI P30";
+const char* password =  "Lark2012";
+const char* mqttServer = "vps268360.vps.ovh.ca";
+const int mqttPort = 1883;
+const char* mqttUser = "test";
+const char* mqttPassword = "123456";
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+
+
 // define two tasks for Blink & AnalogRead
 void TaskMQTT( void *pvParameters );
 void TaskCtrl( void *pvParameters );
@@ -24,6 +36,32 @@ void TaskCtrl( void *pvParameters );
 JSON format : { curTemp:22.5,status:heat/cool,destTemp:23.5,unit:celsius/fahrenheit}
 */
 
+void createPublicSubMessage() {
+
+
+  StaticJsonDocument<200> doc;
+  doc["curTemp"] = 22.5;
+  doc["destTemp"] = 23.5;
+  doc["status"] = "Heating";
+
+  serializeJson(doc, Serial);
+  serializeJsonPretty(doc, Serial);
+}
+
+
+//MQTT Subscript callback 
+
+
+void subcriptCallback(char* topic, byte* payload, unsigned int length) {
+  
+  byte* p = (byte*)malloc(length);
+  // Copy the payload to the new buffer
+  memcpy(p,payload,length);
+  client.publish("test", p, length);
+  // Free the memory
+  free(p);
+  
+}
 
 // the setup function runs once when you press reset or power the board
 void setup() {
