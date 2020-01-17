@@ -1,5 +1,7 @@
 #include <ArduinoJson.h>
-
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include <FreeRTOS.h>
 
 
 
@@ -87,7 +89,7 @@ void TaskCtrl(void *pvParameters)  // This is a task.
 
   for (;;)
   {
-    Serial.println(sensorValueA3);
+    //Serial.println(sensorValueA3);
     vTaskDelay(1000);  // one tick delay (15ms) in between reads for stability
   }
 }
