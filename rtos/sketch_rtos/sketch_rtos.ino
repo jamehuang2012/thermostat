@@ -1,7 +1,7 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
-#include <FreeRTOS.h>
+
 
 
 
@@ -13,8 +13,8 @@
 
 
 
-const char* ssid = "HUAWEI P30";
-const char* password =  "Lark2012";
+const char* ssid = "CIK1000M_AC2.4G_2863";
+const char* password =  "xxxx";
 const char* mqttServer = "vps268360.vps.ovh.ca";
 const int mqttPort = 1883;
 const char* mqttUser = "test";
@@ -70,7 +70,46 @@ void setup() {
   Serial.begin(115200);
 
 
-  Serial.println(ARDUINO_RUNNING_CORE);
+
+ //Config WIFI 
+
+  Serial.begin(115200);
+  WiFi.begin(ssid, password);
+ 
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.println("Connecting to WiFi..");
+  }
+ 
+  Serial.println("Connected to the WiFi network");
+ 
+  client.setServer(mqttServer, mqttPort);
+
+   client.setCallback(subcriptCallback);
+ 
+  while (!client.connected()) {
+    Serial.println("Connecting to MQTT...");
+ 
+    if (client.connect("ESP32Client", mqttUser, mqttPassword )) {
+ 
+      Serial.println("connected");
+ 
+    } else {
+ 
+      Serial.print("failed with state ");
+      Serial.print(client.state());
+      delay(2000);
+ 
+    }
+  }
+
+  //client.subscribe("inTest");
+  client.publish("test", "Hello from ESP32 App starts");
+
+
+  
+
+  
   // Now set up two tasks to run independently.
   xTaskCreatePinnedToCore(
     TaskMQTT
@@ -95,23 +134,28 @@ void setup() {
 
 void loop()
 {
-  // Empty. Things are done in Tasks.
+   client.loop();
 }
 
 /*--------------------------------------------------*/
 /*---------------------- Tasks ---------------------*/
 /*--------------------------------------------------*/
 
+static unsigned long count = 0;
+static char   message[30];
+
 void TaskMQTT(void *pvParameters)  // This is a task.
 {
   (void) pvParameters;
-
-
+  count = 1;
   // Sending the status to MQTT Broker
 
   for (;;) // A Task shall never return or exit.
   {
     vTaskDelay(1000);  // one tick delay (15ms) in between reads for stability
+    sprintf(message,"From Task TaskMQTT %d",count++);
+    client.publish("test", message);
+    Serial.println(message);
   }
 }
 
